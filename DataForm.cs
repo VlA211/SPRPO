@@ -13,7 +13,7 @@ using System.Data.OleDb;
 using Microsoft.Data.Sqlite;
 using System.Data.SQLite;
 using System.IO;
-
+using Excel = Microsoft.Office.Interop.Excel;
 namespace _2_ЛАБА_ПРОГА_БАЗА_ДАННЫХ
 {
    
@@ -55,7 +55,7 @@ namespace _2_ЛАБА_ПРОГА_БАЗА_ДАННЫХ
         const int Columns5 = 5;
         const int Columns6 = 6;
 
-        bool flagIMG = false;
+
         private void ReadSingleRow(DataGridView dgv, IDataRecord record)
         {
             dgv.Rows.Add(record.GetInt32(Columns0), record.GetInt32(Columns1), record.GetString(Columns2), record.GetInt32(Columns3), record.GetInt32(Columns4), RowState.ModifietNew);//, record.GetInt32(Columns4)
@@ -68,6 +68,7 @@ namespace _2_ЛАБА_ПРОГА_БАЗА_ДАННЫХ
         private void ImageMass()
         {
             imgsFil.Clear();
+           // comboBox1.Items.Clear();
             string path = panh + "/Images.txt";
             using (StreamReader reader = new StreamReader(path))
             {
@@ -78,11 +79,9 @@ namespace _2_ЛАБА_ПРОГА_БАЗА_ДАННЫХ
                     Imgsing a = new Imgsing { punhImgs = s, number = i++ };
                     imgsFil.Add(a);
                     s = reader.ReadLine();
-                    if (flagIMG)
-                        continue;
-                      comboBox1.Items.Add(a);
+                    //comboBox1.Items.Add(a);
                 }
-                flagIMG = true;
+
             }
         }
 
@@ -91,7 +90,6 @@ namespace _2_ЛАБА_ПРОГА_БАЗА_ДАННЫХ
             public int number { get; set; }
             public string punhImgs { get; set; }
         }
-
         private void RefreshDataGrid(DataGridView dgv)
         { //Временно, реализовать id пользовател
             dgv.Rows.Clear();
@@ -155,6 +153,7 @@ namespace _2_ЛАБА_ПРОГА_БАЗА_ДАННЫХ
             dataGridView1.Columns[Columns0].Visible = false;
             dataGridView1.Columns[Columns4].Visible = false;
             dataGridView1.Columns[Columns5].Visible = false;
+
             comboBox1.DataSource = imgsFil;
             comboBox1.DisplayMember = "punhImgs";
             comboBox1.ValueMember = "punhImgs";
@@ -170,6 +169,8 @@ namespace _2_ЛАБА_ПРОГА_БАЗА_ДАННЫХ
         private void DataForm_Load(object sender, EventArgs e)
         {
             CreateColumns();
+            comboBox1.DisplayMember = "punhImgs";
+            comboBox1.ValueMember = "punhImgs";
             ImageMass();
             RefreshDataGrid(dataGridView1);
         }
@@ -395,7 +396,8 @@ namespace _2_ЛАБА_ПРОГА_БАЗА_ДАННЫХ
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if(openFileDialog1.ShowDialog() == DialogResult.OK)
+            string rsss = "Картинки/Eror.png";
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 string sss = openFileDialog1.FileName;
                 int lll = sss.Length - 1;
@@ -407,18 +409,20 @@ namespace _2_ЛАБА_ПРОГА_БАЗА_ДАННЫХ
                     }
                 }
                 sss = sss.Substring(lll + 2, sss.Length - lll - 2);
-                string kk = sss;
-                sss = "Картинки/" + sss;
+                rsss = "Картинки/" + sss;
                 Image bitmap = new Bitmap(openFileDialog1.FileName);
-                bitmap.Save(sss);
+                bitmap.Save(rsss);
 
                 string path = panh + "/Images.txt";
                 using (StreamWriter writer = new StreamWriter(path, true))
                 {
-                    writer.WriteLine(kk);
+                    writer.WriteLine(sss);
                 }
-                comboBox1.Items.Add(sss);
             }
+            ImageMass();
+            Imgsing a = new Imgsing { number = imgsFil.Count, punhImgs = rsss };
+            //comboBox1.Items.Add(a);
+            //comboBox1.Items.Clear();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -431,6 +435,7 @@ namespace _2_ЛАБА_ПРОГА_БАЗА_ДАННЫХ
             pictureBox2.Image = new Bitmap(ss, 60, 60);
             try
             {
+              //  if(globa == 0) 
               var selectedRowIndex = dataGridView1.CurrentCell.RowIndex;
                 if (selectedRowIndex >= 0)
                 {
@@ -452,7 +457,7 @@ namespace _2_ЛАБА_ПРОГА_БАЗА_ДАННЫХ
             }
             catch
             {
-
+               // MessageBox.Show("gsfijs");
             }
             RefreshDataGrid(dataGridView1);
         }
@@ -460,6 +465,75 @@ namespace _2_ЛАБА_ПРОГА_БАЗА_ДАННЫХ
         private void pictureBox2_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            Excel.Application exApp = new Excel.Application();
+            exApp.Workbooks.Add();
+            Excel.Worksheet wsh = (Excel.Worksheet)exApp.ActiveSheet;
+
+            
+           
+            for (int i = 0; i <= dataGridView1.RowCount - 1; i++)
+            {
+                for (int j = 0; j < dataGridView1.ColumnCount - 1; j++)
+                {
+                    wsh.Cells[i + 1, j + 1] = dataGridView1[j, i].Value.ToString();
+                }
+            }
+           
+            exApp.Visible = true;
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            Excel.Application exApp = new Excel.Application();
+            exApp.Workbooks.Add();
+            Excel.Worksheet wsh = (Excel.Worksheet)exApp.ActiveSheet;
+            int i = 0;
+            try
+            {
+                 i = dataGridView1.CurrentCell.RowIndex;
+
+           
+
+
+
+
+                for (int j = 0; j < dataGridView1.ColumnCount - 1; j++)
+                {
+                    wsh.Cells[i + 1, j + 1] = dataGridView1[j, i].Value.ToString();
+                }
+            
+
+            exApp.Visible = true;
+            }
+            catch
+            {
+                MessageBox.Show("Выберите строку");
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            Excel.Application exApp = new Excel.Application();
+            exApp.Workbooks.Add();
+            Excel.Worksheet wsh = (Excel.Worksheet)exApp.ActiveSheet;
+
+
+            
+            for (int i = 0; i <= dataGridView1.RowCount - 1; i++)
+            {
+                bool a = Convert.ToBoolean(dataGridView1.Rows[i].Cells[Columns6].Value);
+                if (!a) continue;
+                for (int j = 0; j < dataGridView1.ColumnCount - 1; j++)
+                {
+                    wsh.Cells[i + 1, j + 1] = dataGridView1[j, i].Value.ToString();
+                }
+            }
+
+            exApp.Visible = true;
         }
     }
 }
